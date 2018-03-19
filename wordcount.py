@@ -29,6 +29,44 @@ def basic_count(content):
     return count
 
 
+def advance_count(fd):
+    codelines = blanklines = commentlines = 0
+    isComment = isString = False
+    for line in fd.readlines():
+        line = line.strip().replace('{', '').replace(
+            '}', '').replace(';', '')
+        if not isComment and not line:
+            blanklines += 1
+            continue
+        if isComment:
+            commentlines += 1
+        elif line.replace('/', '').replace('*', ''):
+            codelines += 1
+        line = ' '+line+' '
+        for i in range(1, len(line)):
+            if line[i] == '"' and line[i-1] != '\\':
+                isString = not isString
+            if not isString:
+                if line[i] == '/' and line[i+1] == '/' and not isComment:
+                    if not line[:i].split():
+                        blanklines += 1
+                    commentlines += 1
+                    break
+                if line[i] == '/' and line[i+1] == '*' and not isComment:
+                    isComment = True
+                    commentlines += 1
+                    i += 1
+                if line[i] == '*' and line[i+1] == '/':
+                    isComment = False
+                    i += 1
+    count = {
+        "codelines": codelines,
+        "blanklines": blanklines,
+        "commentlines": commentlines
+    }
+    return count
+
+
 def count_output(args, result):
     output = open(args.output, "w+")
     for r in result:
@@ -44,12 +82,18 @@ def count_output(args, result):
             output.write("{}, 行数: {}\n".format(r["filename"], r["lines"]))
         if args.words:
             output.write("{}, 单词数: {}\n".format(r["filename"], r["words"]))
+        if args.advance:
+            output.write("{}, 代码行/空行/注释行: {}/{}/{}\n".format(
+                r["filename"], r["codelines"], r["blanklines"], r["commentlines"]))
     output.close()
 
 
 def file_word_count(args, path):
     fd = open(path)
     wc = basic_count(fd.read())
+    if args.advance:
+        fd.seek(0)
+        wc.update(advance_count(fd))
     fd.close()
     name = os.path.basename(path)
     wc["filename"] = name
