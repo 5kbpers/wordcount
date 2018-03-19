@@ -24,7 +24,7 @@ def basic_count(content):
     count = {
         "chars": len(content),
         "words": len(re.split(r"[\s,]+", content))-1,
-        "lines": len(content.split('\n'))-1,
+        "lines": len(content.split('\n'))-1
     }
     return count
 
@@ -70,12 +70,6 @@ def advance_count(fd):
 def count_output(args, result):
     output = open(args.output, "w+")
     for r in result:
-        if args.stoplist:
-            stoplist = open(args.stoplist)
-            stopchars = stoplist.read().split()
-            for c in stopchars:
-                r["words"] -= len(re.findall(c, content))
-            stoplist.close()
         if args.chars:
             output.write("{}, 字符数: {}\n".format(r["filename"], r["chars"]))
         if args.lines:
@@ -91,6 +85,14 @@ def count_output(args, result):
 def file_word_count(args, path):
     fd = open(path)
     wc = basic_count(fd.read())
+    if args.stoplist:
+        fd.seek(0)
+        content = fd.read()
+        stoplist = open(args.stoplist)
+        stopchars = stoplist.read().split()
+        for c in stopchars:
+            wc["words"] -= len(re.findall(c, content))
+        stoplist.close()
     if args.advance:
         fd.seek(0)
         wc.update(advance_count(fd))
