@@ -22,7 +22,7 @@ def init_argparser():
 
 def basic_count(content):
     count = {
-        "chars": len(content),
+        "chars": len(content)-1,
         "words": len(re.split(r"[\s,]+", content))-1,
         "lines": len(content.split('\n'))-1
     }
