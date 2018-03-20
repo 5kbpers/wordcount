@@ -15,6 +15,6 @@ codeLine */
 */
         out.flush();
         out.close();
-} // noteLine
-for(){
-}/* noteLine */
+}
+// noteLine
+for(){}/* noteLine */
